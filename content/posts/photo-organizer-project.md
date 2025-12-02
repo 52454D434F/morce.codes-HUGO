@@ -49,6 +49,10 @@ The application continuously watches a user-defined source directory (`Photos/Ph
 
 ### Intelligent Date Detection
 - **Primary Method**: Extracts date from EXIF metadata (`DateTimeOriginal`) when available
+  - Checks top-level EXIF tags first
+  - Searches nested EXIF data (ExifIFD) for cameras that store metadata in nested structures
+  - Falls back to `DateTimeDigitized` if `DateTimeOriginal` is unavailable
+  - Handles various EXIF storage formats for maximum compatibility
 - **Fallback Method**: Uses file creation or modification date if EXIF data is missing
 - **Smart Organization**: Files are organized into year-based subfolders (e.g., `Photos/2024/`)
 
@@ -67,7 +71,7 @@ Files with date information are automatically renamed to `yyyymmdd_hhmmss.*` for
 
 ### Package Information
 - **Package Name**: PhotoOrganizer
-- **Version**: 1.0.0-0009
+- **Version**: 1.0.1-0012
 - **Display Name**: Photo Organizer and Deduplicator
 - **Architecture**: noarch (works on all Synology NAS models)
 - **Minimum DSM Version**: 7.0-40000
@@ -105,9 +109,9 @@ The project source code, build scripts, and documentation are available on GitHu
 
 ## Download
 
-### Latest Version: 1.0.0-0009
+### Latest Version: 1.0.1-0012
 
-[Download PhotoOrganizer-1.0.0-0009.spk](/downloads/PhotoOrganizer-1.0.0-0009.spk)
+[Download PhotoOrganizer-1.0.1-0012.spk](/downloads/PhotoOrganizer-1.0.1-0012.spk)
 
 ## How It Works
 
@@ -131,7 +135,11 @@ The Photo Organizer uses a sophisticated multi-step process to handle each file 
 2. **File Type Detection**: Determines if the file is an image or video based on file extension
 
 3. **Date Extraction** (in priority order):
-   - **Images**: Attempts to read EXIF `DateTimeOriginal` metadata
+   - **Images**: 
+     - Attempts to read EXIF `DateTimeOriginal` from top-level tags
+     - If not found, searches nested EXIF data (ExifIFD) for `DateTimeOriginal`
+     - Falls back to `DateTimeDigitized` if `DateTimeOriginal` is unavailable
+     - Uses sophisticated multi-level EXIF parsing to handle different camera formats
    - **Videos**: Attempts to read creation date from video metadata (MP4/MOV using mutagen library)
    - **Fallback**: Uses the older of file creation or modification timestamp
 
@@ -147,10 +155,19 @@ The Photo Organizer uses a sophisticated multi-step process to handle each file 
 ### Date Extraction Methods
 
 #### EXIF Metadata (Images)
-- Reads `DateTimeOriginal` tag from image EXIF data
-- Supports both modern `getexif()` and legacy `_getexif()` Pillow methods
-- Format: `YYYY:MM:DD HH:MM:SS` (no milliseconds in EXIF standard)
-- Preserves sub-second precision from file timestamps when EXIF is unavailable
+The application uses a sophisticated multi-level approach to extract date information from EXIF metadata:
+
+1. **Top-Level Tags**: First attempts to read `DateTimeOriginal` (tag 306) from top-level EXIF tags
+2. **Nested EXIF Data (ExifIFD)**: If not found at top level, checks nested EXIF data:
+   - Accesses ExifIFD (tag 34665 / 0x8769) using Pillow's `get_ifd()` method (Pillow 8.0+)
+   - Reads `DateTimeOriginal` (tag 0x9003 / 36867) from within the ExifIFD
+   - Falls back to `DateTimeDigitized` (tag 0x9004) if `DateTimeOriginal` is unavailable
+   - Alternative access methods for compatibility with different EXIF structures
+3. **Legacy Support**: Supports both modern `getexif()` and legacy `_getexif()` Pillow methods for compatibility
+4. **Format**: EXIF date format is `YYYY:MM:DD HH:MM:SS` (no milliseconds in EXIF standard)
+5. **Sub-Second Precision**: Preserves sub-second precision from file timestamps when EXIF is unavailable
+
+This multi-level approach ensures maximum compatibility with different camera models and image processing software, as many modern cameras store date information in nested EXIF structures (ExifIFD) rather than top-level tags. The application automatically handles both storage methods, ensuring accurate date extraction regardless of how the camera or software stores the metadata.
 
 #### Video Metadata
 - For MP4/M4V files: Reads creation date from MP4 metadata tags (`©day` or `\xa9day`)
@@ -251,7 +268,7 @@ Statistics are automatically logged in the system log when:
    - Prevents loss of statistics data
 
 2. **Idle Timeout**: After 1 minute (60 seconds) of no file activity
-   - Statistics are logged before resetting counters
+   - Statistics are logged with reason "timeout" before resetting counters
    - Counters reset to zero after logging
    - Prevents statistics from growing indefinitely
    - Provides periodic activity summaries
@@ -260,7 +277,7 @@ Statistics are automatically logged in the system log when:
 
 ### Statistics Format
 
-Logged entries appear in `system_log.csv` with format:
+Logged entries appear in `System.log` with format:
 ```
 Info, System, 2025/01/15 14:30:22, PhotoOrganizer, Statistics (service stopped): 2.45 GB moved, 150.30 MB deleted
 ```
@@ -293,15 +310,15 @@ Photo Organizer includes comprehensive logging capabilities to track all operati
 
 ### Log Files
 
-The application maintains two primary CSV log files in the destination directory:
+The application maintains two primary log files in the destination directory:
 
-1. **`photo_organizer_log.csv`** - Detailed file operation log
+1. **`Photo_Organizer.log`** - Detailed file operation log
    - Tracks all file operations (moves, deletes, duplicates)
    - Records file detection events
    - Includes file size, timestamps, IP addresses, and user information
    - Format: `Log, Time, IP address, User, Event, File/Folder, File size, File name, Additional Info`
 
-2. **`system_log.csv`** - System events log
+2. **`System.log`** - System events log
    - Records service start/stop events
    - Logs dependency checks and system status
    - Tracks statistics (bytes moved/deleted)
@@ -324,10 +341,10 @@ The application uses multiple logging methods for maximum reliability:
    - Used as a fallback if standard logger is unavailable
 
 3. **Package Log Files**
-   - CSV files stored in the destination directory
+   - Plain text log files stored in the destination directory
    - Always accessible to the package user
    - Provides detailed operation history
-   - Can be viewed with any CSV reader or text editor
+   - Can be viewed with any text editor or log viewer
 
 ### Logged Events
 
@@ -349,7 +366,7 @@ The following events are logged:
 ### Log File Locations
 
 On Synology NAS, log files are stored in:
-- Default location: `/volume1/photo/photo_organizer_log.csv` and `/volume1/photo/system_log.csv`
+- Default location: `/volume1/photo/Photo_Organizer.log` and `/volume1/photo/System.log`
 - Alternative: Configured destination directory
 
 ### Viewing Logs
@@ -357,13 +374,13 @@ On Synology NAS, log files are stored in:
 #### Via File Station or SSH
 ```bash
 # View recent file operations
-tail -n 50 /volume1/photo/photo_organizer_log.csv
+tail -n 50 /volume1/photo/Photo_Organizer.log
 
 # View system events
-tail -n 50 /volume1/photo/system_log.csv
+tail -n 50 /volume1/photo/System.log
 
 # View all logs
-cat /volume1/photo/photo_organizer_log.csv
+cat /volume1/photo/Photo_Organizer.log
 ```
 
 #### Via DSM Log Center
@@ -384,7 +401,7 @@ The application tracks and logs statistics including:
 ### Log Format Details
 
 #### File Operation Log Format
-Each entry in `photo_organizer_log.csv` contains:
+Each entry in `Photo_Organizer.log` contains:
 - **Log**: Always "SMB" (for compatibility with Synology file transfer logs)
 - **Time**: Timestamp in `YYYY-MM-DD HH:MM:SS` format
 - **IP address**: Local IP address of the NAS
@@ -396,7 +413,7 @@ Each entry in `photo_organizer_log.csv` contains:
 - **Additional Info**: Contextual information about the operation
 
 #### System Log Format
-Each entry in `system_log.csv` contains:
+Each entry in `System.log` contains:
 - **Level**: Log level (Info, Warning, Error)
 - **Log**: Always "System"
 - **Time**: Timestamp in `YYYY/MM/DD HH:MM:SS` format
@@ -406,8 +423,8 @@ Each entry in `system_log.csv` contains:
 ### Troubleshooting with Logs
 
 Logs are essential for troubleshooting issues:
-1. Check `system_log.csv` for dependency errors or service start/stop issues
-2. Review `photo_organizer_log.csv` for file processing errors
+1. Check `System.log` for dependency errors or service start/stop issues
+2. Review `Photo_Organizer.log` for file processing errors
 3. Look for "Error" entries to identify specific problems
 4. Verify file paths and permissions from logged file operations
 

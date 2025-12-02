@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Automation on M -- O --- R .-. C -.-. E . codes</title>
+    <link>https://morce.codes/tags/automation/</link>
+    <description>Recent content in Automation on M -- O --- R .-. C -.-. E . codes</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 01 Dec 2025 14:23:59 -0600</lastBuildDate>
+    <atom:link href="https://morce.codes/tags/automation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Photo Organizer and Deduplicator</title>
+      <link>https://morce.codes/posts/photo-organizer-project/</link>
+      <pubDate>Mon, 01 Dec 2025 14:23:59 -0600</pubDate>
+      <guid>https://morce.codes/posts/photo-organizer-project/</guid>
+      <description>&lt;h1 id=&#34;dsm-7-package&#34;&gt;&#xD;&#xA;  DSM 7 Package&#xD;&#xA;  &lt;a href=&#34;#dsm-7-package&#34; class=&#34;anchor&#34;&gt;#&lt;/a&gt;&#xD;&#xA;&lt;/h1&gt;&#xD;&#xA;&lt;figure style=&#34;text-align: center; margin: 1em 0;&#34;&gt;&#xD;&#xA;  &lt;img src=&#34;https://morce.codes/icon_256.png&#34; alt=&#34;Photo Organizer Icon&#34; style=&#34;width: 256px; height: 256px; max-width: 256px;&#34; /&gt;&#xD;&#xA;&lt;/figure&gt;&#xD;&#xA;&lt;h2 id=&#34;table-of-contents&#34;&gt;&#xD;&#xA;  Table of Contents&#xD;&#xA;  &lt;a href=&#34;#table-of-contents&#34; class=&#34;anchor&#34;&gt;#&lt;/a&gt;&#xD;&#xA;&lt;/h2&gt;&#xD;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#overview&#34;&gt;Overview&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#purpose&#34;&gt;Purpose&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#key-features&#34;&gt;Key Features&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#package-details&#34;&gt;Package Details&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#github-repository&#34;&gt;GitHub Repository&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#download&#34;&gt;Download&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#how-it-works&#34;&gt;How It Works&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#file-processing-logic&#34;&gt;File Processing Logic&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#duplicate-handling&#34;&gt;Duplicate Handling&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#statistics-tracking&#34;&gt;Statistics Tracking&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#logging&#34;&gt;Logging&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#synology-integration&#34;&gt;Synology Integration&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#license&#34;&gt;License&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;#support&#34;&gt;Support&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h2 id=&#34;overview&#34;&gt;&#xD;&#xA;  Overview&#xD;&#xA;  &lt;a href=&#34;#overview&#34; class=&#34;anchor&#34;&gt;#&lt;/a&gt;&#xD;&#xA;&lt;/h2&gt;&#xD;&#xA;&lt;p&gt;Photo Organizer and Deduplicator is a Synology NAS package that automatically organizes and manages your photo collection. This intelligent application continuously monitors a designated folder and automatically sorts photos by their capture date, detects duplicates, and organizes your entire photo library with minimal user intervention.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

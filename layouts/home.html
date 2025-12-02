@@ -1,0 +1,27 @@
+{{ define "main" }}
+  {{ .Content }}
+  
+  {{- $posts := where site.RegularPages "Section" "posts" }}
+  {{- $latestPost := index ($posts | first 1) 0 }}
+  
+  {{- if $latestPost }}
+    <article>
+      <h2><a href="{{ $latestPost.RelPermalink }}">{{ $latestPost.LinkTitle }}</a></h2>
+      {{ partial "metadata.html" $latestPost }}
+      {{- if $latestPost.Description }}
+        <p>{{ $latestPost.Description | markdownify }}</p>
+      {{- else }}
+        {{- $summary := $latestPost.Summary }}
+        {{- if $summary }}
+          <div class="summary">
+            {{ $summary }}
+            <p><a href="{{ $latestPost.RelPermalink }}">Read more →</a></p>
+          </div>
+        {{- else }}
+          {{ $latestPost.Content }}
+        {{- end }}
+      {{- end }}
+    </article>
+  {{- end }}
+{{ end }}
+

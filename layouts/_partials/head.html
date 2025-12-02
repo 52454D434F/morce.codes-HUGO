@@ -1,0 +1,43 @@
+<meta charset="utf-8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="viewport" content="width=device-width, initial-scale=1, initial-scale = 1.0, shrink-to-fit=no">
+<title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ printf "%s | %s" .Title site.Title }}{{ end }}</title>
+
+<!-- Standard favicon -->
+<link rel="icon" type="image/x-icon" href="{{ "/favicon.ico" | relURL }}">
+
+<!-- PNG versions -->
+<link rel="icon" type="image/png" sizes="16x16" href="{{ "/favicon-16x16.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "/favicon-32x32.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="128x128" href="{{ "/favicon-128x128.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="256x256" href="{{ "/favicon-256x256.png" | relURL }}">
+
+<!-- WebP versions -->
+<link rel="icon" type="image/webp" sizes="16x16" href="{{ "/favicon-16x16.webp" | relURL }}">
+<link rel="icon" type="image/webp" sizes="32x32" href="{{ "/favicon-32x32.webp" | relURL }}">
+<link rel="icon" type="image/webp" sizes="64x64" href="{{ "/favicon-64x64.webp" | relURL }}">
+<link rel="icon" type="image/webp" sizes="256x256" href="{{ "/favicon-256x256.webp" | relURL }}">
+
+<!-- Apple Touch Icon -->
+<link rel="apple-touch-icon" sizes="180x180" href="{{ "/favicon-256x256.png" | relURL }}">
+
+{{- if .Description }}
+  <meta name="description" content="{{ .Description | plainify }}">
+{{- end }}
+
+{{- $styles := slice "css/vars.css" "css/syntax.css" "css/main.css" "css/nav.css" -}}
+{{- range $styles }}
+  {{- with resources.Get . }}
+    <link rel="stylesheet" href="{{ .RelPermalink }}">
+  {{- end }}
+{{- end }}
+
+{{- with resources.Get "css/custom.css" }}
+  <link rel="stylesheet" href="{{ .RelPermalink }}">
+{{- end }}
+
+{{ $noop := .WordCount }}
+{{ if .Page.Store.Get "hasMath" }}
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.css">
+{{ end }}
+

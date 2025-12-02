@@ -6,7 +6,6 @@ tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package'
 image = '/images/icon_256.png'
 +++
 
-
 # DSM 7 Package
 <figure style="text-align: center; margin: 1em 0;">
   <img src="/images/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" />

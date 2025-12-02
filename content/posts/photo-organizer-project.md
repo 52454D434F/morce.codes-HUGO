@@ -3,13 +3,13 @@ date = '2025-12-01T14:23:59-06:00'
 draft = false
 title = 'Photo Organizer and Deduplicator'
 tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package']
-image = '/icon_256.png'
+image = '/images/icon_256.png'
 +++
 
 
 # DSM 7 Package
 <figure style="text-align: center; margin: 1em 0;">
-  <img src="/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" />
+  <img src="/images/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" />
 </figure>
 
 ## Table of Contents

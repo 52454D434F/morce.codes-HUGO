@@ -32,7 +32,7 @@ jobs:
       
       - name: Build
         run: |
-          hugo --minify --baseURL "/morce.codes-HUGO/" --verbose
+          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info
           echo "Build completed. Checking output..."
           if [ ! -d "public" ]; then
             echo "ERROR: public directory was not created!"

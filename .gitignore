@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 .hugo_build.lock
-=======
 # Hugo generated files
 public/
 
@@ -18,4 +16,3 @@ Thumbs.db
 *.swo
 *~
 
->>>>>>> gh-pages

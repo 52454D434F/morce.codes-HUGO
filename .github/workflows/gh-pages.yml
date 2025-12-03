@@ -46,7 +46,8 @@ jobs:
       
       - name: Build
         run: |
-          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info --ignoreCache
+          echo "Running Hugo build..."
+          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info --ignoreCache 2>&1 | tee hugo-build.log
           echo "Build completed. Checking output..."
           if [ ! -d "public" ]; then
             echo "ERROR: public directory was not created!"
@@ -63,11 +64,13 @@ jobs:
           echo "Checking index.html:"
           if [ -f "public/index.html" ]; then
             echo "index.html exists, size: $(wc -c < public/index.html) bytes"
-            echo "First 50 lines of index.html:"
-            head -50 public/index.html
+            echo "Full index.html content:"
+            cat public/index.html
           else
             echo "ERROR: index.html not found!"
           fi
+          echo "Hugo build log:"
+          cat hugo-build.log || echo "No build log found"
         # Use your repository name in baseURL for GitHub Pages
       
       - name: Upload artifact

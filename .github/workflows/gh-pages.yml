@@ -24,6 +24,12 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Configure Git (if needed)
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE || true
+          git config --global user.email "actions@github.com" || true
+          git config --global user.name "GitHub Actions" || true
+      
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
@@ -32,7 +38,7 @@ jobs:
       
       - name: Build
         run: |
-          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info
+          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info --ignoreCache
           echo "Build completed. Checking output..."
           if [ ! -d "public" ]; then
             echo "ERROR: public directory was not created!"

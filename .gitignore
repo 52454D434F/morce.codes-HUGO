@@ -1,1 +1,21 @@
+<<<<<<< HEAD
 .hugo_build.lock
+=======
+# Hugo generated files
+public/
+
+# Hugo build lock
+.hugo_build.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+>>>>>>> gh-pages

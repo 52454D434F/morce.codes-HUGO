@@ -36,6 +36,14 @@ jobs:
           hugo-version: 'latest'
           extended: true  # Required for some themes
       
+      - name: Debug - List content files
+        run: |
+          echo "Content files found:"
+          find content -type f -name "*.md" || echo "No markdown files found"
+          echo "Content directory structure:"
+          ls -la content/ || echo "content directory not found"
+          ls -la content/posts/ || echo "content/posts directory not found"
+      
       - name: Build
         run: |
           hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info --ignoreCache
@@ -52,6 +60,14 @@ jobs:
           find public -type f | wc -l
           echo "Sample files:"
           find public -type f | head -10
+          echo "Checking index.html:"
+          if [ -f "public/index.html" ]; then
+            echo "index.html exists, size: $(wc -c < public/index.html) bytes"
+            echo "First 50 lines of index.html:"
+            head -50 public/index.html
+          else
+            echo "ERROR: index.html not found!"
+          fi
         # Use your repository name in baseURL for GitHub Pages
       
       - name: Upload artifact

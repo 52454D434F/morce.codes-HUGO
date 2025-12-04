@@ -48,7 +48,7 @@ jobs:
       - name: Build
         run: |
           echo "Running Hugo build..."
-          hugo --minify --baseURL "/morce.codes-HUGO/" --logLevel info --ignoreCache 2>&1 | tee hugo-build.log
+          hugo --minify --baseURL "https://morce.codes/" --logLevel info --ignoreCache 2>&1 | tee hugo-build.log
           echo "Build completed. Checking output..."
           if [ ! -d "public" ]; then
             echo "ERROR: public directory was not created!"
@@ -72,7 +72,7 @@ jobs:
           fi
           echo "Hugo build log:"
           cat hugo-build.log || echo "No build log found"
-        # Use your repository name in baseURL for GitHub Pages
+        # Using custom domain morce.codes
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -37,7 +37,7 @@ The Photo Organizer script is designed to solve common photo management challeng
 - **Automatic Organization**: Automatically sorts photos into year-based folders based on when they were taken
 - **Duplicate Detection**: Identifies and handles both exact duplicates and visually similar images
 - **Continuous Monitoring**: Watches a source folder and processes new photos as they arrive
-- **Smart File Naming**: Renames files to a consistent `yyyymmdd_hhmmss.*` format for easy organization
+- **File Naming**: Renames files to a consistent `yyyymmdd_hhmmss.*` format for easy organization
 - **EXIF Metadata Support**: Uses photo metadata when available, with intelligent fallbacks
 
 ## Key Features
@@ -52,11 +52,11 @@ The application continuously watches a user-defined source directory (`Photos/Ph
   - Falls back to `DateTimeDigitized` if `DateTimeOriginal` is unavailable
   - Handles various EXIF storage formats for maximum compatibility
 - **Fallback Method**: Uses file creation or modification date if EXIF data is missing
-- **Smart Organization**: Files are organized into year-based subfolders (e.g., `Photos/2024/`)
+- **Organization**: Files are organized into year-based subfolders (e.g., `Photos/2024/`)
 
 ### Duplicate Detection
 - **Exact Duplicates**: Uses MD5 hash comparison to identify identical files
-- **Smart Handling**: 
+- **Handling**: 
   - Exact duplicates can be deleted or moved to `Duplicates` folder based on configuration
   - When files have same destination name but different content, keeps the older file and moves newer to Duplicates
   - Prevents duplicate accumulation by checking Duplicates folder before moving files there
@@ -94,7 +94,7 @@ Files with date information are automatically renamed to `yyyymmdd_hhmmss.*` for
 
 ### Usage
 Once installed, the service runs automatically in the background:
-1. Place photos in the configured source directory (default: `Photos/PhotosToProcess`)
+1. Place photos in the configured source directory (default: `Photos/Photo Organizer`)
 2. The service automatically processes existing photos
 3. New photos added to the folder are automatically organized
 4. Photos are sorted into year-based folders with consistent naming
@@ -108,8 +108,8 @@ The project source code, build scripts, and documentation are available on GitHu
 
 ## Download
 
-### Latest Version: 1.0.1-00016
-[Download PhotoOrganizer-1.0.x-xxxxx.spk](https://github.com/52454D434F/DSM-Projects/blob/e7c6452f16fba1a8fed28b4e3d414815bd007c90/result_spk/PhotoOrganizer-1.0.1-00016/PhotoOrganizer-1.0.1-00016.spk)
+### Latest Version:
+[Download PhotoOrganizer-1.0.1-00016.spk](https://github.com/52454D434F/DSM-Projects/blob/e7c6452f16fba1a8fed28b4e3d414815bd007c90/result_spk/PhotoOrganizer-1.0.1-00016/PhotoOrganizer-1.0.1-00016.spk)
 
 ## How It Works
 
@@ -146,7 +146,7 @@ The Photo Organizer uses a sophisticated multi-step process to handle each file 
      - Falls back to `DateTimeDigitized` if `DateTimeOriginal` is unavailable
      - Uses sophisticated multi-level EXIF parsing to handle different camera formats
    - **Videos**: Attempts to read creation date from video metadata (MP4/MOV using mutagen library)
-   - **Fallback**: Uses the older of file creation or modification timestamp
+   - **Fallback**: Uses the older of file creation or modification timestamp (newer might have modifications)
 
 4. **Destination Path Generation**:
    - If date found: Creates path `YYYY/MM_Mmm/` (e.g., `2024/08_Aug/`)
@@ -283,8 +283,14 @@ The application maintains comprehensive statistics about file operations to help
 
 ### Tracked Metrics
 
-- **Bytes Moved**: Total size of files successfully organized and moved to destination folders
-- **Bytes Deleted**: Total size of duplicate files removed from the system
+- **Files Moved**: Total number of files successfully organized and moved to destination folders
+- **Bytes Moved**: Total size of data moved to destination folders
+- **Files Moved to Duplicates**: Number of files moved to the Duplicates folder (same-named but different-content files)
+- **Bytes Moved to Duplicates**: Total size of data moved to Duplicates folder
+- **Files Deleted (Duplicates)**: Number of exact duplicate files detected and deleted (when deletion is enabled)
+- **Bytes Deleted (Duplicates)**: Total size of data deleted due to duplicate removal
+
+> Statistics are stored persistently in a JSON file (`Photo_Organizer_Statistics.json`). They are automatically loaded on startup and saved during operation. When files are moved from destination to Duplicates, statistics are automatically adjusted (decremented from destination, incremented in duplicates), ensuring accurate tracking.
 
 ### Statistics Logging
 
@@ -304,7 +310,7 @@ Statistics are automatically logged in the system log when:
 
 ### Statistics Format
 
-Logged entries appear in `System.log` with format:
+Logged entries appear in `Photo_Organizer_Application.log` with format:
 ```
 Info, System, 2025/01/15 14:30:22, PhotoOrganizer, Statistics (service stopped): 2.45 GB moved, 150.30 MB deleted
 ```
@@ -318,7 +324,7 @@ The format includes:
 
 ### Statistics Reset Behavior
 
-- Statistics reset automatically after 1 minute of idle time
+- Statistics counter reset automatically after 1 minute of idle time
 - Reset prevents counters from accumulating over long periods
 - Each reset logs the accumulated statistics before clearing
 - Service stop always logs final statistics (even if recently reset)
@@ -339,18 +345,24 @@ Photo Organizer includes comprehensive logging capabilities to track all operati
 
 The application maintains two primary log files in the destination directory:
 
-1. **`Photo_Organizer.log`** - Detailed file operation log
-   - Tracks all file operations (moves, deletes, duplicates)
-   - Records file detection events
-   - Includes file size, timestamps, IP addresses, and user information
+1. **`Photo_Organizer_Activities.log`** - Detailed file operation log
+   - Tracks all file operations, including moves, deletions, and duplicate handling
+   - Records file detection and processing events
+   - Logs file size, timestamps, IP address, user info, and relevant details
    - Format: `Log, Time, IP address, User, Event, File/Folder, File size, File name, Additional Info`
 
-2. **`System.log`** - System events log
-   - Records service start/stop events
-   - Logs dependency checks and system status
-   - Tracks statistics (bytes moved/deleted)
+2. **`Photo_Organizer_Application.log`** - System and application events log
+   - Records service start/stop, dependency checks, and application/system-level events
+   - Focuses on system state and status, rather than detailed file operations
    - Format: `Level, Log, Time, User, Event`
    - Log levels: Info, Warning, Error
+
+3. **`Photo_Organizer_Statistics.json`** - Persistent statistics file
+   - Tracks summary metrics: files/bytes moved to destination, duplicates handled, deletions
+   - Updates automatically as operations occur
+   - Ensures statistics persist across restarts and can be backed up
+   - Stored in destination folder for easy access
+
 
 ### Logging Methods
 
@@ -394,22 +406,30 @@ The following events are logged:
 ### Log File Locations
 
 On Synology NAS, log files are stored in:
-- Default location: `/volume1/photo/Photo_Organizer.log` and `/volume1/photo/System.log`
-- Alternative: Configured destination directory
+- **Activity Log**: `/volume1/photo/Photo_Organizer_Activities.log`
+- **System/Application Log**: `/volume1/photo/Photo_Organizer_Application.log`
+- **Statistics File**: `Photo_Organizer_Statistics.json` (located in the destination folder)
+- **Alternative Locations**: If configured, logs and statistics may be written in the destination directory configured by the user
+
+**Note:** Log file names were changed in v1.0.1-00017 for clarity (see changelog).
 
 ### Viewing Logs
 
 #### Via File Station or SSH
 ```bash
-# View recent file operations
-tail -n 50 /volume1/photo/Photo_Organizer.log
+# View recent file operations (Activity log)
+tail -n 50 /volume1/photo/Photo_Organizer_Activities.log
 
-# View system events
-tail -n 50 /volume1/photo/System.log
+# View system/application events
+tail -n 50 /volume1/photo/Photo_Organizer_Application.log
 
-# View all logs
-cat /volume1/photo/Photo_Organizer.log
+# View persistent operation statistics (JSON format)
+cat /volume1/photo/Photo_Organizer_Statistics.json
+
+# View all activity logs
+cat /volume1/photo/Photo_Organizer_Activities.log
 ```
+*Note: Log file names and formats changed in v1.0.1-00017. See changelog section for details.*
 
 #### Via DSM Log Center
 System-level events logged via `logger` and `synologset1` are accessible through:
@@ -429,33 +449,41 @@ The application tracks and logs statistics including:
 ### Log Format Details
 
 #### File Operation Log Format
-Each entry in `Photo_Organizer.log` contains (in order):
+Each entry in `Photo_Organizer_Activities.log` contains (in order):
 - **Time**: Timestamp in `YYYY-MM-DD HH:MM:SS` format
-- **IP address**: Local IP address of the NAS
+- **IP address**: Local IP address of the NAS at the time of the operation
 - **User**: System user running the service
-- **File name**: Base filename
+- **File name**: Base filename (without folder path)
 - **File size**: Human-readable file size (e.g., "2.45 MB")
-- **Event**: Type of operation (File moved, Duplicate Deleted, etc.)
-- **Additional Info**: Contextual information about the operation (e.g., "Renamed to", "Different content - Older file", etc.)
-- **File/Folder**: Full system path to the file (destination path if file was moved)
+- **Event**: Operation performed (e.g., "File moved", "Duplicate Deleted", "Moved to Duplicates", etc.)
+- **Additional Info**: Contextual operation details (e.g., "Renamed to ...", "Moved from destination to duplicates - Different content", etc.)
+- **File/Folder**: Full file system path affected by the operation (final path after move or deletion)
 
-#### System Log Format
-Each entry in `System.log` contains:
-- **Level**: Log level (Info, Warning, Error)
-- **Log**: Always "System"
+> **Updated in v1.0.1-00017:**  
+> - Improved event descriptions for moved/deleted files, including statistics adjustments.
+> - Some operations may log both old and new destination paths when moving between destination and duplicates folders.
+> - Moved files from destination to duplicates folder will decrease destination stats and increase duplicates stats (see `Photo_Organizer_Statistics.json`).
+
+#### System/Application Log Format
+Each entry in `Photo_Organizer_Application.log` contains:
+- **Level**: Log level (e.g., Info, Warning, Error)
+- **Log**: Fixed value "System"
 - **Time**: Timestamp in `YYYY/MM/DD HH:MM:SS` format
-- **User**: System user
-- **Event**: Description of the system event
+- **User**: System user running the service
+- **Event**: Description of system or application event (e.g., "Service Started", "Service Stopped", dependencies checked, statistics saved, errors, etc.)
+
+> **Updated in v1.0.1-00017:**  
+> - Statistics dump on shutdown removed from application log to reduce clutter; see `Photo_Organizer_Statistics.json` for details.
+- Application log now focuses on service events, startup/shutdown, and critical errors.
+- Log file path and naming updated for clarity in this version.
 
 ### Troubleshooting with Logs
 
 Logs are essential for troubleshooting issues:
 1. Check `System.log` for dependency errors or service start/stop issues
-2. Review `Photo_Organizer.log` for file processing errors
+2. Review `Photo_Organizer_Application.log` for file processing errors
 3. Look for "Error" entries to identify specific problems
 4. Verify file paths and permissions from logged file operations
-
-For detailed debugging instructions, see the [DEBUGGING.md](source/PhotoOrganizer/DEBUGGING.md) file in the project repository.
 
 ## Synology Integration
 
@@ -520,11 +548,6 @@ The application uses volume-based paths for consistency:
   - Runs with appropriate package user permissions
   - Respects folder access controls
   - Integrates with DSM security model
-
-- **Volume Support**: Works with multiple Synology volumes
-  - Supports `/volume1`, `/volume2`, etc.
-  - Handles volume-specific paths correctly
-  - Adapts to different storage configurations
 
 ### Configuration on Synology
 

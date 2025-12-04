@@ -6,7 +6,7 @@ tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package'
 image = 'images/icon_256.png'
 +++
 
-# DSM 7 Package
+# Synology DSM 7 Package
 {{< img src="/images/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" >}}
 
 ## Table of Contents
@@ -540,7 +540,7 @@ This package provides automatic photo organization functionality for Synology NA
 
 ## Support
 
-For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/52454D434F/DSM-Projects)
+For issues, questions, or contributions, please visit the [GitHub repository](https://github.com/52454D434F/DSM-Projects/issues)
 
 ---
 

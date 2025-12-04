@@ -1,0 +1,7 @@
+<figure style="text-align: center; margin: 1em 0;">
+  <img src="{{ .Get "src" | relURL }}" alt="{{ .Get "alt" }}" style="{{ .Get "style" }}" />
+  {{- if .Get "caption" }}
+  <figcaption>{{ .Get "caption" }}</figcaption>
+  {{- end }}
+</figure>
+

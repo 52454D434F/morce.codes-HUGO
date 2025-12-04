@@ -6,21 +6,9 @@
   
   {{- if $latestPost }}
     <article>
-      <h2><a href="{{ $latestPost.RelPermalink }}">{{ $latestPost.LinkTitle }}</a></h2>
+      <h1>{{ $latestPost.LinkTitle }}</h1>
       {{ partial "metadata.html" $latestPost }}
-      {{- if $latestPost.Description }}
-        <p>{{ $latestPost.Description | markdownify }}</p>
-      {{- else }}
-        {{- $summary := $latestPost.Summary }}
-        {{- if $summary }}
-          <div class="summary">
-            {{ $summary }}
-            <p><a href="{{ $latestPost.RelPermalink }}">Read more →</a></p>
-          </div>
-        {{- else }}
-          {{ $latestPost.Content }}
-        {{- end }}
-      {{- end }}
+      {{ $latestPost.Content }}
     </article>
   {{- end }}
 {{ end }}

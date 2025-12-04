@@ -1,5 +1,5 @@
 <figure style="text-align: center; margin: 1em 0;">
-  <img src="{{ .Get "src" | relURL }}" alt="{{ .Get "alt" }}" style="{{ .Get "style" }}" />
+  <img src="{{ .Get "src" | relURL }}" alt="{{ .Get "alt" }}"{{ with .Get "style" }} style="{{ . | safeCSS }}"{{ end }} />
   {{- if .Get "caption" }}
   <figcaption>{{ .Get "caption" }}</figcaption>
   {{- end }}

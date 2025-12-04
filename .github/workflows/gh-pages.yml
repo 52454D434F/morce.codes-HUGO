@@ -23,6 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          submodules: false  # Disable submodule handling since theme is in repo
       
       - name: Configure Git (if needed)
         run: |

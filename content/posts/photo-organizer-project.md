@@ -56,11 +56,11 @@ The application continuously watches a user-defined source directory (`Photos/Ph
 
 ### Duplicate Detection
 - **Exact Duplicates**: Uses MD5 hash comparison to identify identical files
-- **Similar Images**: Employs perceptual hashing to detect visually similar images
-- **Quality Comparison**: When duplicates are found, compares image quality (resolution, file size, color depth) and keeps the best version
 - **Smart Handling**: 
-  - Exact duplicates are moved to a `Duplicates` folder with unique naming
-  - Similar images are saved with `_A`, `_B`, etc. suffixes in the main Photos folder
+  - Exact duplicates can be deleted or moved to `Duplicates` folder based on configuration
+  - When files have same destination name but different content, keeps the older file and moves newer to Duplicates
+  - Prevents duplicate accumulation by checking Duplicates folder before moving files there
+  - Files in Duplicates folder use subseconds format (`yyyymmdd_hhmmss.ssss.ext`) for unique identification
 
 ### File Renaming
 Files with date information are automatically renamed to `yyyymmdd_hhmmss.*` format, making it easy to find and organize photos chronologically.
@@ -69,7 +69,7 @@ Files with date information are automatically renamed to `yyyymmdd_hhmmss.*` for
 
 ### Package Information
 - **Package Name**: PhotoOrganizer
-- **Version**: 1.0.1-0012
+- **Version**: 1.0.1-0016
 - **Display Name**: Photo Organizer and Deduplicator
 - **Architecture**: noarch (works on all Synology NAS models)
 - **Minimum DSM Version**: 7.0-40000
@@ -81,7 +81,8 @@ Files with date information are automatically renamed to `yyyymmdd_hhmmss.*` for
 - **Dependencies**:
   - [Pillow](https://python-pillow.org/) - For reading EXIF data and image processing
   - [watchdog](https://python-watchdog.readthedocs.io/) - For folder monitoring
-  - [imagehash](https://github.com/JohannesBuchner/imagehash) - For perceptual hashing (similar image detection)
+  - [imagehash](https://github.com/JohannesBuchner/imagehash) - Optional dependency (currently not used in duplicate detection)
+  - [mutagen](https://mutagen.readthedocs.io/) - Optional dependency for video metadata extraction (MP4/MOV files)
   - hashlib - Built-in Python library for MD5 hash calculation
 
 ### Installation
@@ -116,10 +117,17 @@ The project source code, build scripts, and documentation are available on GitHu
 2. **Processing**: When a new photo is detected:
    - EXIF metadata is extracted to determine the capture date
    - If EXIF data is unavailable, file timestamps are used
-   - The photo is checked against existing files for duplicates
-   - Image quality is compared if duplicates are found
-3. **Organization**: Photos are moved to appropriate year-based folders and renamed consistently
-4. **Duplicate Handling**: Exact duplicates are moved to a dedicated folder, while similar images are preserved with unique suffixes
+   - The photo is renamed to `yyyymmdd_hhmmss.ext` format (if date is available)
+   - The photo is checked against existing files at the destination for duplicates
+3. **Duplicate Detection**: 
+   - File sizes are compared first (fast optimization)
+   - If sizes match, MD5 hashes are compared to identify exact duplicates
+   - If hashes differ but filenames match, modification times are compared
+4. **Organization**: Photos are moved to appropriate year-based folders (`YYYY/MM_Mmm/`) with consistent naming
+5. **Duplicate Handling**: 
+   - Exact duplicates are deleted or moved to `Duplicates/` folder based on configuration
+   - When files have different content but same name, the older file is kept in destination, newer file moved to Duplicates
+   - Before moving to Duplicates, checks if an identical file already exists there to prevent duplicate accumulation
 
 ## File Processing Logic
 
@@ -142,12 +150,19 @@ The Photo Organizer uses a sophisticated multi-step process to handle each file 
 
 4. **Destination Path Generation**:
    - If date found: Creates path `YYYY/MM_Mmm/` (e.g., `2024/08_Aug/`)
-   - Filename format: `yyyymmdd_hhmmss.ext` (without subseconds)
+   - Filename format: `yyyymmdd_hhmmss.ext` (without subseconds for destination folder)
    - If no date found: Moves to `NoDateFound/` folder with original filename
 
-5. **Duplicate Check**: Before moving, checks if a file with the same name already exists at the destination
+5. **Duplicate Check**: Before moving, checks if a file with the same name already exists at the destination:
+   - **Size Comparison**: First compares file sizes (fast optimization)
+   - **MD5 Hash Check**: If sizes match, compares MD5 hashes
+   - **Exact Duplicate**: If hashes match, handles according to `DELETE_DUPLICATES` setting
+   - **Different Content**: If hashes differ, compares modification times and keeps older file
 
-6. **File Movement**: Moves the file to the appropriate destination folder
+6. **File Movement**: Moves the file to the appropriate destination folder:
+   - Files are renamed to consistent `yyyymmdd_hhmmss.ext` format when date is available
+   - Original filenames preserved for files without date information
+   - Duplicates are handled according to the configured strategy
 
 ### Date Extraction Methods
 
@@ -197,6 +212,8 @@ The application implements intelligent duplicate detection and handling to preve
 
 #### Exact Duplicates (Same MD5 Hash)
 
+When a file with the same destination filename and identical content (same MD5 hash) is detected:
+
 **If `DELETE_DUPLICATES = true`** (default):
 - The duplicate file is deleted immediately
 - Statistics track bytes deleted
@@ -212,14 +229,15 @@ The application implements intelligent duplicate detection and handling to preve
 
 #### Different Content (Same Filename, Different Hash)
 
-When files have the same destination filename but different content:
+When files have the same destination filename but different content (different MD5 hash):
 
-1. **Modification Time Comparison**: Compares file modification times
+1. **Modification Time Comparison**: Compares file modification times to determine which file is older
 2. **Keep Older File**: The older (earlier modified) file stays in the destination folder
-3. **Move Newer File**: The newer file is moved to `Duplicates/` folder with subseconds format
-4. **Duplicate Check in Duplicates Folder**: Before moving, checks if an identical file already exists in Duplicates folder
-   - If found: Deletes the current duplicate instead of creating another
-   - If not found: Moves with unique subseconds/sequential naming
+3. **Move Newer File**: The newer (later modified) file is moved to `Duplicates/` folder
+4. **Pre-Duplicate Check**: Before moving to Duplicates folder, checks if an identical file (same MD5 hash) already exists in Duplicates folder
+   - **If duplicate found in Duplicates**: Deletes the current file instead of creating another duplicate
+   - **If no duplicate found**: Moves the file with unique subseconds/sequential naming
+5. **Source Replacement**: If the destination file was moved to Duplicates (because it was newer), the source file replaces it in the destination folder
 
 ### Filename Formats
 
@@ -228,24 +246,36 @@ When files have the same destination filename but different content:
 - Example: `20250214_134757.jpg`
 - No subseconds included (clean, consistent naming)
 - Used for existence checks and organization
+- Files are renamed to this format when moved to date-based folders
 
 #### Duplicates Folder
 - **With subseconds**: `yyyymmdd_hhmmss.ssss.ext` (e.g., `20250214_134757.3519.jpg`)
   - Uses actual subseconds from file timestamp when available
   - Provides unique identification based on capture time precision
+  - Format: 4-digit subsecond value (milliseconds from microseconds)
 - **Without subseconds**: `yyyymmdd_hhmmss.0001.ext`, `yyyymmdd_hhmmss.0002.ext`, etc.
   - Sequential numbering ensures unique filenames
   - Starts from 0001 and increments as needed
+  - Used when subseconds are not available from file metadata
+- **Fallback naming**: If filename doesn't match date pattern, uses original name with sequential suffix: `originalname.0001.ext`
 
 ### Duplicate Detection in Duplicates Folder
 
-Before moving a file to the Duplicates folder, the system:
-1. Calculates MD5 hash of the file to be moved
-2. Scans all files in the Duplicates folder
-3. Compares hashes to find exact matches
-4. If duplicate found: Deletes the file instead of moving it
-5. Prevents accumulation of multiple identical duplicates
-6. Ensures Duplicates folder only contains unique files
+Before moving a file to the Duplicates folder, the system performs an additional duplicate check:
+
+1. **MD5 Hash Calculation**: Calculates MD5 hash of the file to be moved
+2. **Folder Scan**: Scans all files in the Duplicates folder
+3. **Hash Comparison**: Compares hashes to find exact matches
+4. **Duplicate Found**: If an identical file (same MD5 hash) already exists in Duplicates folder:
+   - Deletes the current file instead of moving it
+   - Logs as "Duplicate Deleted" with reference to existing duplicate
+   - Updates statistics (bytes deleted)
+   - Updates Synology indexer
+5. **No Duplicate Found**: If no match is found:
+   - Moves the file with unique subseconds/sequential naming
+   - Ensures Duplicates folder only contains unique files
+
+This prevents accumulation of multiple identical duplicates in the Duplicates folder, ensuring efficient storage usage even when `DELETE_DUPLICATES = false`.
 
 ## Statistics Tracking
 
@@ -349,9 +379,10 @@ The following events are logged:
 
 #### File Operations
 - **File Detected**: New file detected in source directory
-- **File Moved**: File successfully moved to destination
-- **Duplicate Deleted**: Exact duplicate removed
-- **Moved to Duplicates**: Duplicate file moved to Duplicates folder
+- **File Moved**: File successfully moved to destination (includes "Renamed to" info when applicable)
+- **Duplicate Deleted**: Exact duplicate removed (either from source or from Duplicates folder)
+- **Moved to Duplicates**: Duplicate file moved to Duplicates folder (includes reason: "Exact duplicate", "Newer file", or "Older file")
+- **File Moved/Renamed**: External file move/rename detected by watchdog
 - **Error**: Any error during file processing
 
 #### System Events
@@ -398,16 +429,15 @@ The application tracks and logs statistics including:
 ### Log Format Details
 
 #### File Operation Log Format
-Each entry in `Photo_Organizer.log` contains:
-- **Log**: Always "SMB" (for compatibility with Synology file transfer logs)
+Each entry in `Photo_Organizer.log` contains (in order):
 - **Time**: Timestamp in `YYYY-MM-DD HH:MM:SS` format
 - **IP address**: Local IP address of the NAS
 - **User**: System user running the service
-- **Event**: Type of operation (File moved, Duplicate Deleted, etc.)
-- **File/Folder**: Full system path to the file
-- **File size**: Human-readable file size (e.g., "2.45 MB")
 - **File name**: Base filename
-- **Additional Info**: Contextual information about the operation
+- **File size**: Human-readable file size (e.g., "2.45 MB")
+- **Event**: Type of operation (File moved, Duplicate Deleted, etc.)
+- **Additional Info**: Contextual information about the operation (e.g., "Renamed to", "Different content - Older file", etc.)
+- **File/Folder**: Full system path to the file (destination path if file was moved)
 
 #### System Log Format
 Each entry in `System.log` contains:
@@ -461,13 +491,13 @@ The application automatically updates Synology's built-in photo indexer (`synoin
    - Timeout protection (5 seconds) prevents hanging
    - Graceful degradation on non-Synology systems
 
-### Path Conversion
+### Path Configuration
 
-The application converts user-visible paths to system paths for logging:
-- User path: `/volume1/photo/Photo Organizer/file.jpg`
-- System path: `/var/services/photo/Photo Organizer/file.jpg`
-- Enables compatibility with Synology's Log Center
-- Maintains consistency with DSM's internal path structure
+The application uses volume-based paths for consistency:
+- Default paths: `/volume1/photo/` (configurable during installation)
+- Logs show volume-based paths for clarity and consistency
+- Compatible with Synology's file system structure
+- Paths are configurable via the installation wizard and stored in `config.ini`
 
 ### Synology-Specific Features
 

@@ -3,12 +3,12 @@ date = '2025-12-01T14:23:59-06:00'
 draft = false
 title = 'Photo Organizer and Deduplicator'
 tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package']
-image = '/images/icon_256.png'
+image = 'images/icon_256.png'
 +++
 
 # DSM 7 Package
 <figure style="text-align: center; margin: 1em 0;">
-  <img src="/images/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" />
+  <img src="../../images/icon_256.png" alt="Photo Organizer Icon" style="width: 256px; height: 256px; max-width: 256px;" />
 </figure>
 
 ## Table of Contents
@@ -109,9 +109,8 @@ The project source code, build scripts, and documentation are available on GitHu
 
 ## Download
 
-### Latest Version: 1.0.1-0012
-
-[Download PhotoOrganizer-1.0.1-0012.spk](/downloads/PhotoOrganizer-1.0.1-0012.spk)
+### Latest Version: 1.0.1-00016
+[Download PhotoOrganizer-1.0.x-xxxxx.spk](https://github.com/52454D434F/DSM-Projects/blob/main/result_spk/PhotoOrganizer-1.0.1-00016/PhotoOrganizer-1.0.1-00016.spk)
 
 ## How It Works
 

@@ -1,8 +1,8 @@
 +++
-date = '2025-12-01T14:23:59-06:00'
+date = '2025-12-05T14:23:59-06:00'
 draft = false
-title = 'Photo Organizer and Deduplicator'
-tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package']
+title = 'Photo Organizer and Deduplicator - Changelog'
+tags = ['synology', 'dsm', 'photo-management', 'automation', 'python', 'package', 'Changelog']
 image = 'images/icon_256.png'
 +++
 

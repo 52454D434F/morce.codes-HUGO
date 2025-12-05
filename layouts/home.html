@@ -2,13 +2,18 @@
   {{ .Content }}
   
   {{- $posts := where site.RegularPages "Section" "posts" }}
-  {{- $latestPost := index ($posts | first 1) 0 }}
+  {{- $mainPost := where $posts "File.LogicalName" "photo-organizer-project.md" }}
+  {{- if $mainPost }}
+    {{- $mainPost = index $mainPost 0 }}
+  {{- else }}
+    {{- $mainPost = index ($posts | first 1) 0 }}
+  {{- end }}
   
-  {{- if $latestPost }}
+  {{- if $mainPost }}
     <article>
-      <h1>{{ $latestPost.LinkTitle }}</h1>
-      {{ partial "metadata.html" $latestPost }}
-      {{ $latestPost.Content }}
+      <h1>{{ $mainPost.LinkTitle }}</h1>
+      {{ partial "metadata.html" $mainPost }}
+      {{ $mainPost.Content }}
     </article>
   {{- end }}
 {{ end }}

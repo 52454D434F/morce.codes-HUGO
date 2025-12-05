@@ -39,7 +39,7 @@ Photo Organizer and Deduplicator is a Synology NAS package that automatically or
 
 ### Package Information
 - **Package Name**: PhotoOrganizer
-- **Version**: 1.0.1-00019
+- **Version**: 1.0.1-0016
 - **Display Name**: Photo Organizer and Deduplicator
 - **Architecture**: noarch (works on all Synology NAS models)
 - **Minimum DSM Version**: 7.0-40000
@@ -79,11 +79,7 @@ The project source code, build scripts, and documentation are available on GitHu
 ## Download
 
 ### Latest Version:
-[Download PhotoOrganizer-1.0.1-00019.spk](https://github.com/52454D434F/DSM-Photo-Organizer/blob/main/result_spk/PhotoOrganizer-1.0.1-00019/PhotoOrganizer-1.0.1-00019.spk)
-
-**Recent Updates:**
-- **v1.0.1-00019**: Fixed critical statistics tracking bug ensuring all file moves are accurately counted
-- **v1.0.1-00018**: Fixed EXIF date extraction priority order, added CreateDate tag support, enhanced log entries
+[Download PhotoOrganizer-1.0.1-00016.spk](https://github.com/52454D434F/DSM-Projects/blob/e7c6452f16fba1a8fed28b4e3d414815bd007c90/result_spk/PhotoOrganizer-1.0.1-00016/PhotoOrganizer-1.0.1-00016.spk)
 
 ## File Processing Logic
 
@@ -97,15 +93,10 @@ The Photo Organizer uses a file system watcher to monitor the source directory a
 
 3. **Date Extraction** (in priority order):
    - **Images**: 
-     - **Priority 1**: Nested ExifIFD `DateTimeOriginal` (tag 0x9003) - **HIGHEST PRIORITY** - Most accurate capture date
-     - **Priority 2**: Nested ExifIFD `DateTimeDigitized` (tag 0x9004)
-     - **Priority 3**: Nested ExifIFD `CreateDate`
-     - **Priority 4**: Top-level `DateTimeOriginal`
-     - **Priority 5**: Top-level `DateTimeDigitized`
-     - **Priority 6**: Top-level `CreateDate`
-     - **Priority 7**: Top-level `DateTime` (tag 0x0132) - **LOWEST PRIORITY** - File modification date
+     - Attempts to read EXIF `DateTimeOriginal` from top-level tags
+     - If not found, searches nested EXIF data (ExifIFD) for `DateTimeOriginal`
+     - Falls back to `DateTimeDigitized` if `DateTimeOriginal` is unavailable
      - Uses sophisticated multi-level EXIF parsing to handle different camera formats
-     - **Note**: Nested ExifIFD tags are prioritized over top-level tags to ensure actual photo capture date is used instead of file modification date
    - **Videos**: Attempts to read creation date from video metadata (MP4/MOV using mutagen library)
    - **Fallback**: Uses the older of file creation or modification timestamp (newer might have modifications)
 
@@ -129,12 +120,7 @@ The Photo Organizer uses a file system watcher to monitor the source directory a
 
 The application uses multiple methods to extract date information in priority order:
 
-1. **EXIF Metadata (Images)**: 
-   - **Nested ExifIFD tags (highest priority)**: Reads `DateTimeOriginal`, `DateTimeDigitized`, and `CreateDate` from nested ExifIFD structure (tag 0x8769)
-   - **Top-level tags (fallback)**: Reads `DateTimeOriginal`, `DateTimeDigitized`, `CreateDate`, and `DateTime` from top-level EXIF tags
-   - **Priority order ensures actual photo capture date is used**: Nested ExifIFD tags contain the most accurate capture metadata and are checked first
-   - Supports both modern and legacy Pillow methods for maximum camera compatibility
-   - **Critical fix (v1.0.1-00018)**: Fixed incorrect priority order that was using file modification date before actual capture date
+1. **EXIF Metadata (Images)**: Reads `DateTimeOriginal` from top-level tags, then nested EXIF data (ExifIFD), with fallback to `DateTimeDigitized`. Supports both modern and legacy Pillow methods for maximum camera compatibility.
 2. **Video Metadata**: Reads creation date from MP4/MOV metadata using mutagen library, supporting ISO 8601 format.
 3. **File Timestamps**: Uses the older of creation or modification time, preserving sub-second precision when available.
 
@@ -164,28 +150,6 @@ Before moving a file to the Duplicates folder, the system checks if an identical
 ## Statistics Tracking
 
 The application maintains statistics about file operations, tracking files/bytes moved to destination folders, moved to Duplicates, and deleted (duplicates). Statistics are stored persistently in `Photo_Organizer_Statistics.json`, automatically loaded on startup, and adjusted when files move between destination and Duplicates folders.
-
-### Statistics Accuracy
-
-**Critical fix (v1.0.1-00019)**: Statistics are now updated immediately after file move operations complete, ensuring all files are accurately counted even if logging or indexer operations fail. This guarantees data integrity: if a file is moved, it's always counted in statistics.
-
-### Statistics Data
-
-The `Photo_Organizer_Statistics.json` file tracks:
-- `files_moved_to_destination`: Total number of files moved to organized folders
-- `bytes_moved_to_destination`: Total bytes moved to organized folders
-- `files_moved_to_duplicates`: Total number of files moved to Duplicates folder
-- `bytes_moved_to_duplicates`: Total bytes moved to Duplicates folder
-- `files_deleted`: Total number of duplicate files deleted
-- `bytes_deleted`: Total bytes deleted (duplicates)
-- `last_updated`: Timestamp of last statistics update
-
-### Statistics Persistence
-
-- Statistics are automatically saved periodically (every 10 operations or 30 seconds timeout, whichever comes first)
-- Statistics persist across application restarts
-- Statistics are adjusted when files move between destination and Duplicates folders
-- File locking support ensures thread-safe statistics updates on Unix/Linux systems
 
 Statistics are automatically logged when:
 - Service stops (final statistics before shutdown)
